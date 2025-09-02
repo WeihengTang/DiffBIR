@@ -2,15 +2,11 @@
     <img src="assets/logo.png" width="400">
 </p>
 
-## DiffBIR: Towards Blind Image Restoration with Generative Diffusion Prior
+## DiffBIR: 4-Channel RGB+Mono Extension
 
-[Paper](https://arxiv.org/abs/2308.15070) | [Project Page](https://0x3f3f3f3fun.github.io/projects/diffbir/)
+**Extended from:** [DiffBIR: Towards Blind Image Restoration with Generative Diffusion Prior](https://arxiv.org/abs/2308.15070)
 
-![visitors](https://visitor-badge.laobi.icu/badge?page_id=XPixelGroup/DiffBIR) [![Open in OpenXLab](https://cdn-static.openxlab.org.cn/app-center/openxlab_app.svg)](https://openxlab.org.cn/apps/detail/linxinqi/DiffBIR-official) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/camenduru/DiffBIR-colab/blob/main/DiffBIR_colab.ipynb) [![Try a demo on Replicate](https://replicate.com/zsxkib/diffbir/badge)](https://replicate.com/zsxkib/diffbir)
-
-[Xinqi Lin](https://0x3f3f3f3fun.github.io/)<sup>1,\*</sup>, [Jingwen He](https://github.com/hejingwenhejingwen)<sup>2,3,\*</sup>, [Ziyan Chen](https://orcid.org/0000-0001-6277-5635)<sup>1</sup>, [Zhaoyang Lyu](https://scholar.google.com.tw/citations?user=gkXFhbwAAAAJ&hl=en)<sup>2</sup>, [Bo Dai](http://daibo.info/)<sup>2</sup>, [Fanghua Yu](https://github.com/Fanghua-Yu)<sup>1</sup>, [Wanli Ouyang](https://wlouyang.github.io/)<sup>2</sup>, [Yu Qiao](http://mmlab.siat.ac.cn/yuqiao)<sup>2</sup>, [Chao Dong](http://xpixel.group/2010/01/20/chaodong.html)<sup>1,2</sup>
-
-<sup>1</sup>Shenzhen Institute of Advanced Technology, Chinese Academy of Sciences<br><sup>2</sup>Shanghai AI Laboratory<br><sup>3</sup>The Chinese University of Hong Kong
+This repository extends the original DiffBIR to support **4-channel inputs (RGB + monochromatic)** with **centralized dataset configuration** using local datasets via `load_from_disk`.
 
 <p align="center">
     <img src="assets/teaser.png">
@@ -26,77 +22,146 @@
 
 ## :book:Table Of Contents
 
-- [Update](#update)
-- [Visual Results On Real-world Images](#visual_results)
-- [TODO](#todo)
+- [Key Changes & Features](#changes)
+- [Quick Setup (4-Channel)](#4channel)
 - [Installation](#installation)
-- [Quick Start](#quick_start)
-- [Pretrained Models](#pretrained_models)
-- [Inference](#inference)
-- [Train (Standard 3-Channel)](#train)
-- [4-Channel RGB+Mono Training](#4channel)
+- [Original DiffBIR Features](#original)
 - [Citation](#citation)
 
-## <a name="update"></a>:new:Update
+## <a name="changes"></a>:sparkles:Key Changes & Features
 
-- **2025.09.02**: ✅ Added 4-channel RGB+Mono support with centralized dataset configuration using `load_from_disk`
-- **2025.07.29**: ✅ We've released our new work [HYPIR](https://github.com/XPixelGroup/HYPIR)! It **significantly outperforms DiffBIR**🔥🔥🔥, while also being **tens of times faster**🔥🔥🔥. We welcome you to try it out.
-- **2024.11.27**: ✅ Release DiffBIR v2.1, including a **new model** trained on unsplash dataset with [LLaVA]()-generated captions, more samplers, better tiled-sampling support and so on. Check [release note](https://github.com/XPixelGroup/DiffBIR/releases/tag/v2.1.0) for details.
-- **2024.04.08**: ✅ Release everything about our [updated manuscript](https://arxiv.org/abs/2308.15070), including (1) a **new model** trained on subset of laion2b-en and (2) a **more readable code base**, etc. DiffBIR is now a general restoration pipeline that could handle different blind image restoration tasks with a unified generation module.
-- **2023.09.19**: ✅ Add support for Apple Silicon! Check [installation_xOS.md](assets/docs/installation_xOS.md) to work with **CPU/CUDA/MPS** device!
-- **2023.09.14**: ✅ Integrate a patch-based sampling strategy ([mixture-of-diffusers](https://github.com/albarji/mixture-of-diffusers)). [**Try it!**](#tiled-sampling) Here is an [example](https://imgsli.com/MjA2MDA1) with a resolution of 2396 x 1596. GPU memory usage will continue to be optimized in the future and we are looking forward to your pull requests!
-- **2023.09.14**: ✅ Add support for background upsampler (DiffBIR/[RealESRGAN](https://github.com/xinntao/Real-ESRGAN)) in face enhancement! :rocket: [**Try it!**](#inference_fr)
-- **2023.09.13**: :rocket: Provide online demo (DiffBIR-official) in [OpenXLab](https://openxlab.org.cn/apps/detail/linxinqi/DiffBIR-official), which integrates both general model and face model. Please have a try! [camenduru](https://github.com/camenduru) also implements an online demo, thanks for his work.:hugs:
-- **2023.09.12**: ✅ Upload inference code of latent image guidance and release [real47](inputs/real47) testset.
-- **2023.09.08**: ✅ Add support for restoring unaligned faces.
-- **2023.09.06**: :rocket: Update [colab demo](https://colab.research.google.com/github/camenduru/DiffBIR-colab/blob/main/DiffBIR_colab.ipynb). Thanks to [camenduru](https://github.com/camenduru)!:hugs:
-- **2023.08.30**: This repo is released.
+### :new: What's New in This Extension
 
-## <a name="visual_results"></a>:eyes:Visual Results On Real-world Images
+- **4-Channel Input Support**: Fuses RGB (3 channels) + monochromatic (1 channel) images
+- **Local Dataset Loading**: Uses `load_from_disk` instead of HuggingFace streaming
+- **Centralized Configuration**: Single file (`dataset_config.py`) controls all dataset paths
+- **Enhanced Models**: 4-channel VAE, ControlLDM, and SwinIR support
+- **Simplified Setup**: One-time configuration for all training scripts
 
-### Blind Image Super-Resolution
+### :gear: Architecture Extensions
 
-[<img src="assets/visual_results/bsr6.png" height="223px"/>](https://imgsli.com/MTk5ODI3) [<img src="assets/visual_results/bsr7.png" height="223px"/>](https://imgsli.com/MTk5ODI4) [<img src="assets/visual_results/bsr4.png" height="223px"/>](https://imgsli.com/MTk5ODI1)
+- **`diffbir/model/vae_4channel.py`**: 4-channel VAE (encodes 4→latent, decodes latent→3)
+- **`diffbir/model/cldm_4channel.py`**: ControlLDM wrapper for 4-channel processing
+- **`diffbir/dataset/huggingface_rgbmono.py`**: RGB+mono dataset fusion with augmentation
+- **`dataset_config.py`**: Centralized path configuration
+- **Training configs**: Optimized for 4-channel workflow
 
-### Blind Face Restoration
+## <a name="4channel"></a>:rocket:Quick Setup (4-Channel RGB+Mono Training)
 
-[<img src="assets/visual_results/whole_image1.png" height="370"/>](https://imgsli.com/MjA2MTU0) 
-[<img src="assets/visual_results/whole_image2.png" height="370"/>](https://imgsli.com/MjA2MTQ4)
+### :one: Dataset Configuration (One-Time Setup)
 
-:star: Face and the background enhanced by DiffBIR.
+**Edit `dataset_config.py` (lines 11-12):**
+```python
+RGB_DATASET_PATH = "/path/to/your/rgb_dataset"
+MONO_DATASET_PATH = "/path/to/your/mono_dataset"
+```
 
-### Blind Image Denoising
+:sparkles: **That's it!** All training, testing, and setup scripts will automatically use these paths.
 
-[<img src="assets/visual_results/bid1.png" height="215px"/>](https://imgsli.com/MjUzNzkz) [<img src="assets/visual_results/bid3.png" height="215px"/>](https://imgsli.com/MjUzNzky)
-[<img src="assets/visual_results/bid2.png" height="215px"/>](https://imgsli.com/MjUzNzkx)
+### :two: Run Setup Script
 
-### 8x Blind Super-Resolution With Tiled Sampling
+```bash
+python setup_4channel.py
+```
 
-> I often think of Bag End. I miss my books and my arm chair, and my garden. See, that's where I belong. That's home. --- Bilbo Baggins
+This will:
+- Check required packages and create directories
+- Verify dataset paths from `dataset_config.py`
+- Download required model weights if missing
+- Test 4-channel model compatibility
 
-[<img src="assets/visual_results/tiled_sampling.png" height="480px"/>](https://imgsli.com/MjUzODE4)
+### :three: Download Required Weights
 
-## <a name="todo"></a>:climbing:TODO
+```bash
+wget https://huggingface.co/stabilityai/stable-diffusion-2-1-base/resolve/main/v2-1_512-ema-pruned.ckpt -O weights/v2-1_512-ema-pruned.ckpt
+```
 
-- [x] Release code and pretrained models :computer:.
-- [x] Update links to paper and project page :link:.
-- [x] Release real47 testset :minidisc:.
-- [ ] Provide webui.
-- [x] Reduce the vram usage of DiffBIR :fire::fire::fire:.
-- [ ] Provide HuggingFace demo :notebook:.
-- [x] Add a patch-based sampling schedule :mag:.
-- [x] Upload inference code of latent image guidance :page_facing_up:.
-- [x] Improve the performance :superhero:.
-- [x] Support MPS acceleration for MacOS users.
-- [ ] DiffBIR-turbo :fire::fire::fire:.
-- [x] Speed up inference, such as using fp16/bf16, torch.compile :fire::fire::fire:.
-- [x] Add 4-channel RGB+Mono support :new:.
+### :four: Test Setup
+
+```bash
+python test_4channel_setup.py
+```
+
+### :five: Start Training
+
+```bash
+# Stage 1 (4-Channel SwinIR) - Optional, config handles 4-channel inputs automatically
+# accelerate launch train_stage1.py --config configs/train/train_stage1.yaml
+
+# Stage 2 (4-Channel ControlLDM)
+accelerate launch train_stage2_4channel.py --config configs/train/train_stage2_4channel.yaml
+```
+
+### :file_folder: Dataset Requirements
+
+Your datasets should be saved using `datasets.save_to_disk()` with structure:
+```
+dataset/
+├── train/
+│   ├── gt/      # High-quality images
+│   └── blur/    # Low-quality/degraded images
+└── validation/ (optional)
+    ├── gt/
+    └── blur/
+```
+
+### :bug: Troubleshooting
+
+**Common Issues:**
+1. **Dataset paths not found**: Edit `dataset_config.py` with correct paths
+2. **Memory issues**: Reduce `batch_size` in config
+3. **Channel mismatches**: Verify all models use 4-channel configuration
+
+**Debug Commands:**
+```bash
+# Test dataset loading
+python test_4channel_setup.py
+
+# Verify centralized config
+python -c "from dataset_config import get_dataset_paths, validate_dataset_paths; print(get_dataset_paths()); print(validate_dataset_paths())"
+```
+
+### :clipboard: Key Configuration
+
+**Training config (`configs/train/train_stage2_4channel.yaml`):**
+```yaml
+model:
+  cldm:
+    target: diffbir.model.cldm_4channel.ControlLDM4Channel
+    params:
+      vae_cfg:
+        ddconfig:
+          in_channels: 4  # 4-channel input
+          out_ch: 3       # RGB output
+      controlnet_cfg:
+        hint_channels: 4  # 4-channel condition
+  swinir:
+    params:
+      in_chans: 4  # 4-channel input
+
+dataset:
+  train:
+    target: diffbir.dataset.huggingface_rgbmono.HuggingFaceRGBMonoDataset
+    params:
+      # Paths read automatically from dataset_config.py
+      split: "train"
+      out_size: 512
+
+train:
+  batch_size: 8  # Reduced for 4-channel processing
+```
+
+### :page_facing_up: Additional Documentation
+
+- **[DATASET_SETUP.md](DATASET_SETUP.md)**: Detailed dataset configuration guide
+- **Debug logging**: Extensive shape and value monitoring throughout training
+- **Centralized config**: Single file (`dataset_config.py`) controls all dataset paths
 
 ## <a name="installation"></a>:gear:Installation
 
 ```shell
 # clone this repo
-git clone https://github.com/XPixelGroup/DiffBIR.git
+git clone https://github.com/WeihengTang/DiffBIR.git  # Note: This is the extended 4-channel version
 cd DiffBIR
 
 # create environment
@@ -105,22 +170,41 @@ conda activate diffbir
 pip install -r requirements.txt
 ```
 
-Our new code is based on pytorch 2.2.2 for the built-in support of memory-efficient attention. If you are working on a GPU that is not compatible with the latest pytorch, just downgrade pytorch to 1.13.1+cu116 and install xformers 0.0.16 as an alternative.
+Our code is based on pytorch 2.2.2 for memory-efficient attention. If your GPU isn't compatible, downgrade to pytorch 1.13.1+cu116 and install xformers 0.0.16.
 
-## <a name="quick_start"></a>:flight_departure:Quick Start
+## <a name="original"></a>:book:Original DiffBIR Features
 
-Run the following command to interact with the gradio website.
+<details>
+<summary><strong>Click to expand original DiffBIR documentation</strong></summary>
+
+### Visual Results On Real-world Images
+
+#### Blind Image Super-Resolution
+
+[<img src="assets/visual_results/bsr6.png" height="223px"/>](https://imgsli.com/MTk5ODI3) [<img src="assets/visual_results/bsr7.png" height="223px"/>](https://imgsli.com/MTk5ODI4) [<img src="assets/visual_results/bsr4.png" height="223px"/>](https://imgsli.com/MTk5ODI1)
+
+#### Blind Face Restoration
+
+[<img src="assets/visual_results/whole_image1.png" height="370"/>](https://imgsli.com/MjA2MTU0) 
+[<img src="assets/visual_results/whole_image2.png" height="370"/>](https://imgsli.com/MjA2MTQ4)
+
+:star: Face and the background enhanced by DiffBIR.
+
+#### Blind Image Denoising
+
+[<img src="assets/visual_results/bid1.png" height="215px"/>](https://imgsli.com/MjUzNzkz) [<img src="assets/visual_results/bid3.png" height="215px"/>](https://imgsli.com/MjUzNzky)
+[<img src="assets/visual_results/bid2.png" height="215px"/>](https://imgsli.com/MjUzNzkx)
+
+### Quick Start (Original 3-Channel)
+
+Run the following command to interact with the gradio website:
 
 ```shell
 # For low-VRAM users, set captioner to ram or none
 python run_gradio.py --captioner llava
 ```
 
-<div align="center">
-    <kbd><img src="assets/gradio.png"></img></kbd>
-</div>
-
-## <a name="pretrained_models"></a>:dna:Pretrained Models
+### Pretrained Models
 
 Here we list pretrained weight of stage 2 model (IRControlNet) and our trained SwinIR, which was used for degradation removal during the training of stage 2 model.
 
@@ -501,7 +585,10 @@ python -c "from dataset_config import get_dataset_paths, validate_dataset_paths;
 - **Debug logging**: Extensive shape and value monitoring throughout training
 - **Centralized config**: Single file (`dataset_config.py`) controls all dataset paths
 
-## Citation
+
+</details>
+
+## <a name="citation"></a>Citation
 
 Please cite us if our work is useful for your research.
 
