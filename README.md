@@ -33,10 +33,13 @@
 - [Quick Start](#quick_start)
 - [Pretrained Models](#pretrained_models)
 - [Inference](#inference)
-- [Train](#train)
+- [Train (Standard 3-Channel)](#train)
+- [4-Channel RGB+Mono Training](#4channel)
+- [Citation](#citation)
 
 ## <a name="update"></a>:new:Update
 
+- **2025.09.02**: ✅ Added 4-channel RGB+Mono support with centralized dataset configuration using `load_from_disk`
 - **2025.07.29**: ✅ We've released our new work [HYPIR](https://github.com/XPixelGroup/HYPIR)! It **significantly outperforms DiffBIR**🔥🔥🔥, while also being **tens of times faster**🔥🔥🔥. We welcome you to try it out.
 - **2024.11.27**: ✅ Release DiffBIR v2.1, including a **new model** trained on unsplash dataset with [LLaVA]()-generated captions, more samplers, better tiled-sampling support and so on. Check [release note](https://github.com/XPixelGroup/DiffBIR/releases/tag/v2.1.0) for details.
 - **2024.04.08**: ✅ Release everything about our [updated manuscript](https://arxiv.org/abs/2308.15070), including (1) a **new model** trained on subset of laion2b-en and (2) a **more readable code base**, etc. DiffBIR is now a general restoration pipeline that could handle different blind image restoration tasks with a unified generation module.
@@ -55,15 +58,7 @@
 
 [<img src="assets/visual_results/bsr6.png" height="223px"/>](https://imgsli.com/MTk5ODI3) [<img src="assets/visual_results/bsr7.png" height="223px"/>](https://imgsli.com/MTk5ODI4) [<img src="assets/visual_results/bsr4.png" height="223px"/>](https://imgsli.com/MTk5ODI1)
 
-<!-- [<img src="assets/visual_results/bsr1.png" height="223px"/>](https://imgsli.com/MTk5ODIy) [<img src="assets/visual_results/bsr2.png" height="223px"/>](https://imgsli.com/MTk5ODIz)
-
-[<img src="assets/visual_results/bsr3.png" height="223px"/>](https://imgsli.com/MTk5ODI0) [<img src="assets/visual_results/bsr5.png" height="223px"/>](https://imgsli.com/MjAxMjM0) -->
-
-<!-- [<img src="assets/visual_results/bsr1.png" height="223px"/>](https://imgsli.com/MTk5ODIy) [<img src="assets/visual_results/bsr5.png" height="223px"/>](https://imgsli.com/MjAxMjM0) -->
-
 ### Blind Face Restoration
-
-<!-- [<img src="assets/visual_results/bfr1.png" height="223px"/>](https://imgsli.com/MTk5ODI5) [<img src="assets/visual_results/bfr2.png" height="223px"/>](https://imgsli.com/MTk5ODMw) [<img src="assets/visual_results/bfr4.png" height="223px"/>](https://imgsli.com/MTk5ODM0) -->
 
 [<img src="assets/visual_results/whole_image1.png" height="370"/>](https://imgsli.com/MjA2MTU0) 
 [<img src="assets/visual_results/whole_image2.png" height="370"/>](https://imgsli.com/MjA2MTQ4)
@@ -95,6 +90,7 @@
 - [x] Support MPS acceleration for MacOS users.
 - [ ] DiffBIR-turbo :fire::fire::fire:.
 - [x] Speed up inference, such as using fp16/bf16, torch.compile :fire::fire::fire:.
+- [x] Add 4-channel RGB+Mono support :new:.
 
 ## <a name="installation"></a>:gear:Installation
 
@@ -110,7 +106,6 @@ pip install -r requirements.txt
 ```
 
 Our new code is based on pytorch 2.2.2 for the built-in support of memory-efficient attention. If you are working on a GPU that is not compatible with the latest pytorch, just downgrade pytorch to 1.13.1+cu116 and install xformers 0.0.16 as an alternative.
-<!-- Note the installation is only compatible with **Linux** users. If you are working on different platforms, please check [xOS Installation](assets/docs/installation_xOS.md). -->
 
 ## <a name="quick_start"></a>:flight_departure:Quick Start
 
@@ -306,24 +301,6 @@ Add the following arguments to enable tiled sampling:
 ```
 
 Tiled sampling supports super-resolution with a large scale factor on low-VRAM graphics cards. Our tiled sampling is built upon [mixture-of-diffusers](https://github.com/albarji/mixture-of-diffusers) and [Tiled-VAE](https://github.com/pkuliyi2015/multidiffusion-upscaler-for-automatic1111). Thanks for their work!
-<!-- 
-#### Restoration Guidance
-
-Restoration guidance is used to achieve a trade-off bwtween quality and fidelity. We default to closing it since we prefer quality rather than fidelity. Here is an example:
-
-```shell
-python -u inference.py \
---version v2 \
---task sr \
---upscale 4 \
---cfg_scale 4.0 \
---input inputs/demo/bsr \
---guidance --g_loss w_mse --g_scale 0.5 --g_space rgb \
---output results/demo_bsr_wg \
---device cuda
-```
-
-You will see that the results become more smooth. -->
 
 #### Condition as Start Point of Sampling
 
@@ -336,7 +313,7 @@ start point for sampling and consequently suppresses the artifacts in flat regio
 
 For our model, we use the diffused condition as start point. This option makes the results more stable and ensures that the outcomes from ODE samplers like DDIM and DPMS are normal. However, it may lead to a decrease in sample quality.
 
-## <a name="train"></a>:stars:Train
+## <a name="train"></a>:stars:Train (Standard 3-Channel)
 
 ### Stage 1
 
@@ -390,6 +367,139 @@ First, we train a SwinIR, which will be used for degradation removal during the 
     ```shell
     accelerate launch train_stage2.py --config configs/train/train_stage2.yaml
     ```
+
+## <a name="4channel"></a>:new:4-Channel RGB+Mono Training
+
+This repository now supports training with 4-channel inputs (3 RGB + 1 monochromatic) using local datasets via `load_from_disk`.
+
+### :gear: Setup
+
+#### 1. Dataset Configuration (One-Time Setup)
+
+**Edit `dataset_config.py` (lines 11-12):**
+```python
+RGB_DATASET_PATH = "/path/to/your/rgb_dataset"
+MONO_DATASET_PATH = "/path/to/your/mono_dataset"
+```
+
+:sparkles: **That's it!** All training, testing, and setup scripts will automatically use these paths.
+
+#### 2. Run Setup Script
+
+```bash
+python setup_4channel.py
+```
+
+This will:
+- Check required packages and create directories
+- Verify dataset paths from `dataset_config.py`
+- Download required model weights if missing
+- Test 4-channel model compatibility
+
+#### 3. Download Required Weights
+
+```bash
+wget https://huggingface.co/stabilityai/stable-diffusion-2-1-base/resolve/main/v2-1_512-ema-pruned.ckpt -O weights/v2-1_512-ema-pruned.ckpt
+```
+
+#### 4. Test Setup
+
+```bash
+python test_4channel_setup.py
+```
+
+### :rocket: Training
+
+#### Stage 1 (4-Channel SwinIR)
+```bash
+# You may need to train a 4-channel SwinIR first or modify an existing one
+# The config automatically handles 4-channel inputs via in_chans: 4
+```
+
+#### Stage 2 (4-Channel ControlLDM)
+```bash
+accelerate launch train_stage2_4channel.py --config configs/train/train_stage2_4channel.yaml
+```
+
+### :wrench: Architecture Changes
+
+#### Models Modified for 4-Channel Support:
+- **VAE (`diffbir/model/vae_4channel.py`)**: Encodes 4-channel input, decodes to 3-channel RGB
+- **ControlLDM (`diffbir/model/cldm_4channel.py`)**: Wrapper for 4-channel VAE integration
+- **SwinIR**: Native support via `in_chans: 4` parameter
+
+#### Dataset Processing:
+1. **Load** RGB and mono datasets from disk using `load_from_disk`
+2. **Process** both images with consistent augmentations
+3. **Fuse** RGB (3 channels) + mono (1 channel) = 4 channels
+4. **Normalize** following DiffBIR standards:
+   - GT: RGB→[-1,1], Mono→[-1,1]
+   - LQ: RGB→[0,1], Mono→[0,1]
+
+### :file_folder: Dataset Requirements
+
+Your datasets should be saved using `datasets.save_to_disk()` with structure:
+```
+dataset/
+├── train/
+│   ├── gt/      # High-quality images
+│   └── blur/    # Low-quality/degraded images
+└── validation/ (optional)
+    ├── gt/
+    └── blur/
+```
+
+### :clipboard: Key Configuration
+
+**Training config (`configs/train/train_stage2_4channel.yaml`):**
+```yaml
+model:
+  cldm:
+    target: diffbir.model.cldm_4channel.ControlLDM4Channel
+    params:
+      vae_cfg:
+        ddconfig:
+          in_channels: 4  # 4-channel input
+          out_ch: 3       # RGB output
+      controlnet_cfg:
+        hint_channels: 4  # 4-channel condition
+  swinir:
+    params:
+      in_chans: 4  # 4-channel input
+
+dataset:
+  train:
+    target: diffbir.dataset.huggingface_rgbmono.HuggingFaceRGBMonoDataset
+    params:
+      # Paths read automatically from dataset_config.py
+      split: "train"
+      out_size: 512
+
+train:
+  batch_size: 8  # Reduced for 4-channel processing
+```
+
+### :bug: Troubleshooting
+
+**Common Issues:**
+1. **Dataset paths not found**: Edit `dataset_config.py` with correct paths
+2. **Memory issues**: Reduce `batch_size` in config
+3. **Channel mismatches**: Verify all models use 4-channel configuration
+
+**Debug Commands:**
+```bash
+# Test dataset loading
+python test_4channel_setup.py
+
+# Verify centralized config
+python -c "from dataset_config import get_dataset_paths, validate_dataset_paths; print(get_dataset_paths()); print(validate_dataset_paths())"
+```
+
+### :page_facing_up: Documentation
+
+- **[DATASET_SETUP.md](DATASET_SETUP.md)**: Detailed dataset configuration guide
+- **Debug logging**: Extensive shape and value monitoring throughout training
+- **Centralized config**: Single file (`dataset_config.py`) controls all dataset paths
 
 ## Citation
 
