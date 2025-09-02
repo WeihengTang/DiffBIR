@@ -85,8 +85,8 @@ python test_4channel_setup.py
 ### :five: Start Training
 
 ```bash
-# Stage 1 (4-Channel SwinIR) - Optional, config handles 4-channel inputs automatically
-# accelerate launch train_stage1.py --config configs/train/train_stage1.yaml
+# Stage 1 (4-Channel SwinIR) - REQUIRED: Train 4-channel SwinIR first
+accelerate launch train_stage1.py --config configs/train/train_stage1_4channel.yaml
 
 # Stage 2 (4-Channel ControlLDM)
 accelerate launch train_stage2_4channel.py --config configs/train/train_stage2_4channel.yaml
