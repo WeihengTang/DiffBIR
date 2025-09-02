@@ -7,17 +7,32 @@ The codebase has been updated to use `load_from_disk` instead of `load_dataset` 
 **File:** `dataset_config.py` (lines 11-12)
 
 ```python
-RGB_DATASET_PATH = "/path/to/your/rgb_dataset"
-MONO_DATASET_PATH = "/path/to/your/mono_dataset"
+RGB_DATASET_PATH = "datasets/color"      # Path to RGB dataset folder
+MONO_DATASET_PATH = "datasets/mono"      # Path to mono dataset folder
+```
+
+**Expected Directory Structure:**
+```
+DiffBIR/
+└── datasets/
+    ├── color/
+    │   ├── train/          # RGB training data (arrow files + dataset_info.json + state.json)
+    │   └── validation/     # RGB validation data (arrow files + dataset_info.json + state.json)
+    └── mono/
+        ├── train/          # Mono training data (arrow files + dataset_info.json + state.json)
+        └── validation/     # Mono validation data (arrow files + dataset_info.json + state.json)
 ```
 
 That's it! All other files will automatically use these paths.
 
 ## Dataset Requirements
 - Both RGB and mono datasets should be saved using `datasets.save_to_disk()`
-- The datasets should have the same structure as the original HuggingFace datasets
-- Each dataset should contain `gt` and `blur` image fields
-- The paths should point to the root directory of each saved dataset
+- Each split folder (`train`, `validation`) should contain:
+  - Arrow files with the actual data
+  - `dataset_info.json` with dataset metadata  
+  - `state.json` with dataset state information
+- Each dataset should contain `gt` and `blur` image features
+- The code will automatically load the correct split based on training configuration
 
 ## Instructions
 1. Open `dataset_config.py`

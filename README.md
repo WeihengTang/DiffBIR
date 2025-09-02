@@ -52,8 +52,8 @@ This repository extends the original DiffBIR to support **4-channel inputs (RGB 
 
 **Edit `dataset_config.py` (lines 11-12):**
 ```python
-RGB_DATASET_PATH = "/path/to/your/rgb_dataset"
-MONO_DATASET_PATH = "/path/to/your/mono_dataset"
+RGB_DATASET_PATH = "datasets/color"      # Path to RGB dataset folder
+MONO_DATASET_PATH = "datasets/mono"      # Path to mono dataset folder
 ```
 
 :sparkles: **That's it!** All training, testing, and setup scripts will automatically use these paths.
@@ -96,14 +96,17 @@ accelerate launch train_stage2_4channel.py --config configs/train/train_stage2_4
 
 Your datasets should be saved using `datasets.save_to_disk()` with structure:
 ```
-dataset/
-├── train/
-│   ├── gt/      # High-quality images
-│   └── blur/    # Low-quality/degraded images
-└── validation/ (optional)
-    ├── gt/
-    └── blur/
+DiffBIR/
+└── datasets/
+    ├── color/
+    │   ├── train/          # RGB training data (arrow files + dataset_info.json + state.json)
+    │   └── validation/     # RGB validation data (arrow files + dataset_info.json + state.json)
+    └── mono/
+        ├── train/          # Mono training data (arrow files + dataset_info.json + state.json)  
+        └── validation/     # Mono validation data (arrow files + dataset_info.json + state.json)
 ```
+
+Each dataset should have `gt` and `blur` features containing the respective image data.
 
 ### :bug: Troubleshooting
 
@@ -462,8 +465,8 @@ This repository now supports training with 4-channel inputs (3 RGB + 1 monochrom
 
 **Edit `dataset_config.py` (lines 11-12):**
 ```python
-RGB_DATASET_PATH = "/path/to/your/rgb_dataset"
-MONO_DATASET_PATH = "/path/to/your/mono_dataset"
+RGB_DATASET_PATH = "datasets/color"      # Path to RGB dataset folder
+MONO_DATASET_PATH = "datasets/mono"      # Path to mono dataset folder
 ```
 
 :sparkles: **That's it!** All training, testing, and setup scripts will automatically use these paths.
@@ -524,14 +527,17 @@ accelerate launch train_stage2_4channel.py --config configs/train/train_stage2_4
 
 Your datasets should be saved using `datasets.save_to_disk()` with structure:
 ```
-dataset/
-├── train/
-│   ├── gt/      # High-quality images
-│   └── blur/    # Low-quality/degraded images
-└── validation/ (optional)
-    ├── gt/
-    └── blur/
+DiffBIR/
+└── datasets/
+    ├── color/
+    │   ├── train/          # RGB training data (arrow files + dataset_info.json + state.json)
+    │   └── validation/     # RGB validation data (arrow files + dataset_info.json + state.json)
+    └── mono/
+        ├── train/          # Mono training data (arrow files + dataset_info.json + state.json)  
+        └── validation/     # Mono validation data (arrow files + dataset_info.json + state.json)
 ```
+
+Each dataset should have `gt` and `blur` features containing the respective image data.
 
 ### :clipboard: Key Configuration
 

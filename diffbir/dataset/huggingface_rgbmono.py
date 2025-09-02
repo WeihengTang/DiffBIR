@@ -75,25 +75,25 @@ class HuggingFaceRGBMonoDataset(data.Dataset):
             logger.info(f"Loading Mono dataset from: {mono_dataset_path}")
             logger.info(f"Split: {split}")
         
-        # Load datasets from disk
+        # Load datasets from disk - construct paths to specific split folders
         try:
-            rgb_dataset_full = load_from_disk(rgb_dataset_path)
-            mono_dataset_full = load_from_disk(mono_dataset_path)
+            # Build paths to the specific split folders
+            rgb_split_path = os.path.join(rgb_dataset_path, split)
+            mono_split_path = os.path.join(mono_dataset_path, split)
             
-            # Apply split if datasets have splits, otherwise use the full dataset
-            if hasattr(rgb_dataset_full, split):
-                self.rgb_dataset = rgb_dataset_full[split]
-            else:
-                self.rgb_dataset = rgb_dataset_full
-                if self.debug_logging:
-                    logger.warning(f"Split '{split}' not found in RGB dataset, using full dataset")
+            if self.debug_logging:
+                logger.info(f"Loading RGB split from: {rgb_split_path}")
+                logger.info(f"Loading Mono split from: {mono_split_path}")
             
-            if hasattr(mono_dataset_full, split):
-                self.mono_dataset = mono_dataset_full[split]
-            else:
-                self.mono_dataset = mono_dataset_full
-                if self.debug_logging:
-                    logger.warning(f"Split '{split}' not found in mono dataset, using full dataset")
+            # Check if split folders exist
+            if not os.path.exists(rgb_split_path):
+                raise ValueError(f"RGB dataset split '{split}' not found at: {rgb_split_path}")
+            if not os.path.exists(mono_split_path):
+                raise ValueError(f"Mono dataset split '{split}' not found at: {mono_split_path}")
+            
+            # Load the specific split directly
+            self.rgb_dataset = load_from_disk(rgb_split_path)
+            self.mono_dataset = load_from_disk(mono_split_path)
                 
         except Exception as e:
             logger.error(f"Error loading datasets from disk: {e}")
