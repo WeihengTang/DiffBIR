@@ -1,0 +1,59 @@
+model:
+  swinir:
+    target: diffbir.model.swinir.SwinIR
+    params:
+      img_size: 64
+      patch_size: 1
+      in_chans: 4  # Changed from 3 to 4 for RGB+mono input
+      embed_dim: 180
+      depths: [6, 6, 6, 6, 6, 6, 6, 6]
+      num_heads: [6, 6, 6, 6, 6, 6, 6, 6]
+      window_size: 8
+      mlp_ratio: 2
+      sf: 8
+      img_range: 1.0
+      upsampler: "nearest+conv"
+      resi_connection: "1conv"
+      unshuffle: True
+      unshuffle_scale: 8
+
+dataset:
+  train:
+    target: diffbir.dataset.huggingface_rgbmono.HuggingFaceRGBMonoDataset
+    params:
+      # Paths will be read from dataset_config.py - no need to set here
+      split: "train"
+      out_size: 512
+      crop_type: center
+      use_hflip: True
+      use_rot: True
+      p_empty_prompt: 0.5
+      debug_logging: True
+  val:
+    target: diffbir.dataset.huggingface_rgbmono.HuggingFaceRGBMonoDataset
+    params:
+      # Paths will be read from dataset_config.py - no need to set here
+      split: "validation"
+      out_size: 512
+      crop_type: center
+      use_hflip: False
+      use_rot: False
+      p_empty_prompt: 0.5
+      debug_logging: True
+
+batch_transform:
+  target: diffbir.dataset.batch_transform.IdentityBatchTransform
+
+train:
+  # experiment directory path
+  exp_dir: "experiments/4channel_swinir_stage1"
+  learning_rate: 1e-4
+  # total batch size (reduced for 4-channel processing)
+  batch_size: 64
+  num_workers: 
+  train_steps: 150000
+  log_every: 50
+  ckpt_every: 10000
+  image_every: 1000
+  val_every: 1000
+  resume: ~
