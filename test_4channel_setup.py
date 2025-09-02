@@ -85,9 +85,14 @@ def test_model_creation():
         cfg = OmegaConf.load(config_path)
         logger.info("Config loaded successfully")
         
-        # Test VAE creation
-        logger.info("Testing 4-channel VAE creation...")
-        vae = instantiate_from_config(cfg.model.cldm.params.vae_cfg)
+        # Test ControlLDM creation
+        logger.info("Testing 4-channel ControlLDM creation...")
+        cldm = instantiate_from_config(cfg.model.cldm)
+        logger.info("ControlLDM created successfully")
+        
+        # Test VAE from ControlLDM
+        logger.info("Testing 4-channel VAE from ControlLDM...")
+        vae = cldm.vae
         logger.info(f"VAE created - Encoder input channels: {vae.encoder.in_channels}")
         
         # Test with dummy 4-channel input
@@ -100,11 +105,6 @@ def test_model_creation():
             
             decoded = vae.decode(encoded.sample())
             logger.info(f"VAE decode successful - Output shape: {decoded.shape}")
-        
-        # Test ControlLDM creation
-        logger.info("Testing 4-channel ControlLDM creation...")
-        cldm = instantiate_from_config(cfg.model.cldm)
-        logger.info("ControlLDM created successfully")
         
         # Test SwinIR creation  
         logger.info("Testing 4-channel SwinIR creation...")
