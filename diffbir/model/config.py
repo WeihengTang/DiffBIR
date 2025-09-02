@@ -32,12 +32,13 @@ class Config:
 
 
 # initialize attention mode
-if XFORMERS_IS_AVAILBLE:
-    Config.attn_mode = AttnMode.XFORMERS
-    print(f"use xformers attention as default")
-elif SDP_IS_AVAILABLE:
+# Note: Prioritize SDP over xformers for better compatibility with 4-channel models
+if SDP_IS_AVAILABLE:
     Config.attn_mode = AttnMode.SDP
-    print(f"use sdp attention as default")
+    print(f"use sdp attention as default (prioritized for 4-channel compatibility)")
+elif XFORMERS_IS_AVAILBLE:
+    Config.attn_mode = AttnMode.XFORMERS
+    print(f"use xformers attention as fallback")
 else:
     print(f"both sdp attention and xformers are not available, use vanilla attention (very expensive) as default")
 
